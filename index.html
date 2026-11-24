@@ -189,14 +189,9 @@
     align-items: flex-start;
     gap: 10px;
     margin-top: 14px;
-    font-size: 0.95rem;
-    color: var(--ink);
-  }
-  .resform .checkrow input[type="checkbox"] {
-    width: auto;
-    margin-top: 3px;
-    transform: scale(1.3);
-    accent-color: #1f5f5b;
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--soft);
   }
   .footer {
     text-align: center;
@@ -272,10 +267,7 @@
       <input type="text" id="ct-names" placeholder="e.g., John &amp; Jane Smith">
       <label for="ct-count">How many people?</label>
       <input type="text" id="ct-count" placeholder="e.g., 2">
-      <div class="checkrow">
-        <input type="checkbox" id="ct-share" checked>
-        <label for="ct-share" style="all:unset;cursor:pointer;">Other guests may see my reservation</label>
-      </div>
+      <div class="checkrow">ℹ️ <span>Heads up: your reservation will be visible to other guests.</span></div>
       <button type="button" onclick="sendCatarina()">📱 Text My Reservation to Nick</button>
       <p class="formnote">Opens your messaging app with everything filled in — just hit send. (Or text (330) 559-5772 directly.)</p>
     </div>
@@ -304,10 +296,7 @@
       <input type="text" id="sh-date" placeholder="e.g., Dec 3">
       <label for="sh-time">Arrival time</label>
       <input type="text" id="sh-time" placeholder="e.g., 1:45 PM">
-      <div class="checkrow">
-        <input type="checkbox" id="sh-share" checked>
-        <label for="sh-share" style="all:unset;cursor:pointer;">Other guests may see my reservation &amp; flight details (helps coordinate shared rides!)</label>
-      </div>
+      <div class="checkrow">ℹ️ <span>Heads up: your name and flight details will be visible to other guests so we can coordinate shared rides.</span></div>
       <button type="button" onclick="sendShuttle()">📱 Text My Reservation to Nick</button>
       <p class="formnote">Opens your messaging app with everything filled in — just hit send. Nick will reply with your driver's name and shuttle-mates. (Or text (330) 559-5772 directly.)</p>
     </div>
@@ -419,26 +408,20 @@ function val(id) {
   return v || '___';
 }
 
-function yn(id) {
-  return document.getElementById(id).checked ? 'Yes' : 'No';
-}
-
 function sendShuttle() {
   var body = 'SHUTTLE RESERVATION\n'
     + 'Name(s): ' + val('sh-names') + '\n'
     + 'Airline: ' + val('sh-airline') + '\n'
     + 'Flight: ' + val('sh-flight') + '\n'
     + 'Arrival date: ' + val('sh-date') + '\n'
-    + 'Arrival time: ' + val('sh-time') + '\n'
-    + 'OK to share my reservation & flight with other guests: ' + yn('sh-share');
+    + 'Arrival time: ' + val('sh-time');
   smsOpen(body);
 }
 
 function sendCatarina() {
   var body = 'CATARINA TOUR RESERVATION (Saturday 10 AM)\n'
     + 'Name(s): ' + val('ct-names') + '\n'
-    + 'Party size: ' + val('ct-count') + '\n'
-    + 'OK to share my reservation with other guests: ' + yn('ct-share');
+    + 'Party size: ' + val('ct-count');
   smsOpen(body);
 }
 </script>
