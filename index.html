@@ -202,10 +202,13 @@
     z-index: 0;
   }
   .emoji-pin {
-    font-size: 26px;
-    line-height: 30px;
+    font-size: 20px;
+    line-height: 34px;
     text-align: center;
-    text-shadow: 0 0 6px rgba(255,255,255,0.9), 0 2px 4px rgba(0,0,0,0.5);
+    background: #fff;
+    border: 2px solid var(--deep-teal);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.35);
   }
   .map-legend {
     display: flex;
@@ -636,13 +639,13 @@ var places = [
 ];
 
 var map = L.map('map', { scrollWheelZoom: false });
-L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
   attribution: '&copy; Esri &copy; OpenStreetMap contributors',
   maxZoom: 16
 }).addTo(map);
 var bounds = [];
 places.forEach(function (p) {
-  var icon = L.divIcon({ className: 'emoji-pin', html: p.emoji, iconSize: [30, 30], iconAnchor: [15, 15] });
+  var icon = L.divIcon({ className: 'emoji-pin', html: p.emoji, iconSize: [38, 38], iconAnchor: [19, 19] });
   L.marker([p.lat, p.lng], { icon: icon }).addTo(map)
     .bindPopup('<b>' + p.emoji + ' ' + p.name + '</b><br>' + p.desc
       + '<br><a href="https://www.google.com/maps?q=' + p.lat + ',' + p.lng + '" target="_blank">Open in Google Maps</a>');
