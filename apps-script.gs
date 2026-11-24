@@ -60,10 +60,11 @@ function doPost(e) {
       ]);
       try {
         var label = req.type === 'catarina' ? 'Catarina Tour'
-          : req.type === 'treehouse' ? 'Treehouse Party' : 'Airport Shuttle';
+          : req.type === 'treehouse' ? 'Treehouse Party'
+          : req.type === 'return' ? 'Return Flight' : 'Airport Shuttle';
         var lines = ['Name(s): ' + clean(req.names)];
         if (req.party) lines.push('Party size: ' + clean(req.party));
-        if (req.type === 'shuttle') {
+        if (req.type === 'shuttle' || req.type === 'return') {
           lines.push('Flight: ' + clean(req.flight));
           lines.push('Arrival date: ' + clean(req.date));
           lines.push('Arrival time: ' + clean(req.time));

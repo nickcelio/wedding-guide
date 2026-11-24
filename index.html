@@ -517,8 +517,8 @@
       <li><span class="big-emoji">⚠️</span><strong>Camouflage or military-style clothing</strong> — best avoided.</li>
     </ul>
     <div class="callout warn">
-      <strong>And one golden rule while you're here:</strong>
-      Do not say, post, wear, or bring <strong>anything political</strong> while in Nicaragua. Keep conversations to travel, food, the wedding, and fun — and you'll have a wonderful, trouble-free trip.
+      <strong>And a few golden rules while you're here:</strong>
+      Do not say, post, wear, or bring <strong>anything political</strong> while in Nicaragua. <strong>Don't take photos at customs</strong>, and <strong>never photograph military or police</strong> — officers or buildings. Keep conversations to travel, food, the wedding, and fun — and you'll have a wonderful, trouble-free trip.
     </div>
   </div>
 
@@ -564,6 +564,33 @@
   </div>
 
   <!-- CONTACT -->
+  <!-- RETURN FLIGHTS -->
+  <div class="section">
+    <div class="kicker">Heading Home</div>
+    <h2>✈️ Return Flights</h2>
+    <p>Share your return flight so we can arrange <strong>shuttles back to the airport</strong> too — same deal as arrivals: same flight, same van.</p>
+    <div class="resform">
+      <h3>✈️ My Return Flight</h3>
+      <label for="rt-names">Name(s) in your party</label>
+      <input type="text" id="rt-names" placeholder="e.g., John &amp; Jane Smith">
+      <label for="rt-party">How many people?</label>
+      <input type="text" id="rt-party" placeholder="e.g., 2">
+      <label for="rt-flight">Return flight number</label>
+      <input type="text" id="rt-flight" placeholder="e.g., UA1860">
+      <label for="rt-date">Departure date</label>
+      <input type="text" id="rt-date" placeholder="e.g., Dec 7">
+      <label for="rt-time">Departure time</label>
+      <input type="text" id="rt-time" placeholder="e.g., 2:30 PM">
+      <div class="checkrow">ℹ️ <span>Heads up: your name and flight details will be visible to other guests so we can coordinate shared rides.</span></div>
+      <button type="button" id="rt-btn" onclick="submitReturn()">✈️ Save My Return Info</button>
+      <p class="formnote" id="rt-status">Your info saves instantly and appears below.</p>
+      <div class="reslist">
+        <h4>Who's heading home — same flight, same van! 🚐</h4>
+        <div id="rt-list"><em>Loading…</em></div>
+      </div>
+    </div>
+  </div>
+
   <!-- CONTACT -->
   <div class="contact-box">
     <h2>Questions?</h2>
@@ -628,7 +655,8 @@ function renderVans(items, isAdmin) {
     var label = key === 'TBD' ? '🚐 Flight TBD' : '🚐 Flight ' + esc(key);
     var seats = g.map(function (e) {
       return '<div class="van-seat"><span>🧑‍✈️ <b>' + esc(e.names) + '</b>'
-        + (e.party ? ' <span class="meta">(' + esc(e.party) + ' ppl)</span>' : '') + '</span>'
+        + (e.party ? ' <span class="meta">(' + esc(e.party) + ' ppl)</span>' : '')
+        + (e.airline ? '<br><span class="meta">↩️ return: ' + esc(e.airline) + '</span>' : '') + '</span>'
         + adminBtns(e.id, isAdmin) + '</div>';
     }).join('');
     return '<div class="van"><div class="van-body">'
@@ -640,7 +668,7 @@ function renderVans(items, isAdmin) {
 
 function render() {
   var isAdmin = !!adminCode;
-  var boxes = { shuttle: 'sh-list', catarina: 'ct-list', treehouse: 'th-list' };
+  var boxes = { shuttle: 'sh-list', catarina: 'ct-list', treehouse: 'th-list', 'return': 'rt-list' };
   Object.keys(boxes).forEach(function (type) {
     var box = el(boxes[type]);
     var items = allEntries.filter(function (e) { return e.type === type; });
@@ -648,7 +676,7 @@ function render() {
       box.innerHTML = '<em>No reservations yet — be the first!</em>';
       return;
     }
-    if (type === 'shuttle') {
+    if (type === 'shuttle' || type === 'return') {
       box.innerHTML = renderVans(items, isAdmin);
       return;
     }
@@ -665,8 +693,9 @@ function loadEntries() {
     allEntries = d.entries || [];
     render();
   }).catch(function () {
-    el('sh-list').innerHTML = el('ct-list').innerHTML = el('th-list').innerHTML =
-      '<em>Could not load reservations — check back shortly.</em>';
+    ['sh-list', 'ct-list', 'th-list', 'rt-list'].forEach(function (id) {
+      el(id).innerHTML = '<em>Could not load reservations — check back shortly.</em>';
+    });
   });
 }
 
@@ -677,6 +706,7 @@ function setStatus(prefix, msg) {
 function submitShuttle() { submitForm('shuttle', 'sh', { names: sheetSafe(val('sh-names')), party: sheetSafe(val('sh-party')), flight: sheetSafe(val('sh-flight')), date: sheetSafe(val('sh-date')), time: sheetSafe(val('sh-time')) }); }
 function submitCatarina() { submitForm('catarina', 'ct', { names: sheetSafe(val('ct-names')), party: sheetSafe(val('ct-count')) }); }
 function submitTreehouse() { submitForm('treehouse', 'th', { names: sheetSafe(val('th-names')) }); }
+function submitReturn() { submitForm('return', 'rt', { names: sheetSafe(val('rt-names')), party: sheetSafe(val('rt-party')), flight: sheetSafe(val('rt-flight')), date: sheetSafe(val('rt-date')), time: sheetSafe(val('rt-time')) }); }
 
 function submitForm(type, prefix, fields) {
   if (!fields.names) { setStatus(prefix, 'Please enter your name(s) first!'); return; }
@@ -697,7 +727,7 @@ function submitForm(type, prefix, fields) {
     clearForm(prefix);
     setStatus(prefix, editing.id ? 'Updated!' : 'Reserved! See you there 🎉');
     editing = { id: null, type: null };
-    var labels = { sh: '🚐 Reserve My Shuttle', ct: '⛰️ Reserve My Spot', th: '🌴 Count Me In' };
+    var labels = { sh: '🚐 Reserve My Shuttle', ct: '⛰️ Reserve My Spot', th: '🌴 Count Me In', rt: '✈️ Save My Return Info' };
     el(prefix + '-btn').textContent = labels[prefix];
   }).catch(function () {
     btn.disabled = false;
@@ -707,6 +737,7 @@ function submitForm(type, prefix, fields) {
 
 function clearForm(prefix) {
   var ids = prefix === 'sh' ? ['sh-names', 'sh-party', 'sh-flight', 'sh-date', 'sh-time']
+    : prefix === 'rt' ? ['rt-names', 'rt-party', 'rt-flight', 'rt-date', 'rt-time']
     : prefix === 'ct' ? ['ct-names', 'ct-count'] : ['th-names'];
   ids.forEach(function (id) { el(id).value = ''; });
 }
@@ -734,6 +765,11 @@ function startEdit(id) {
     el('sh-flight').value = e.flight; el('sh-date').value = e.date; el('sh-time').value = e.time;
     el('sh-btn').textContent = '💾 Save Changes';
     el('sh-names').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (e.type === 'return') {
+    el('rt-names').value = e.names; el('rt-party').value = e.party;
+    el('rt-flight').value = e.flight; el('rt-date').value = e.date; el('rt-time').value = e.time;
+    el('rt-btn').textContent = '💾 Save Changes';
+    el('rt-names').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else if (e.type === 'treehouse') {
     el('th-names').value = e.names;
     el('th-btn').textContent = '💾 Save Changes';
