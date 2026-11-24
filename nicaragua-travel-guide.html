@@ -315,7 +315,7 @@
     <h2>Wedding Weekend Schedule</h2>
     <ul>
       <li><strong>Friday, December 4 — Dinner, Drinks &amp; Jungle Dance Party 🍻</strong><br>
-      From <strong>7:00 PM</strong>, we'll be hanging out on <strong>La Calzada</strong>, Granada's lively main pedestrian street — join whenever you arrive, no set schedule. Later, the adventurous can head to the famous <strong>Treehouse Hostel Jungle Party</strong> near Mombacho Volcano (electronic music, dancing, and a short jungle hike in — wear good footwear!).</li>
+      From <strong>7:00 PM</strong>, we'll be hanging out on <strong>La Calzada</strong>, Granada's lively main pedestrian street — join whenever you arrive, no set schedule. Later, the adventurous can head to the famous <strong>Treehouse Hostel Jungle Party</strong> near Mombacho Volcano (electronic music, dancing, and a short jungle hike in — wear good footwear!). Coming to Treehouse? Reserve your spot below so we can plan rides!</li>
       <li><strong>Saturday, December 5 — The Wedding 💍</strong><br>
       <strong>Optional morning excursion:</strong> Van to the <strong>Catarina Overlook</strong> at <strong>10:00 AM</strong> — stunning views over Laguna de Apoyo and fun artisan shops. Interested? Reserve your spot with the form just below!<br>
       <strong>Ceremony:</strong> 5:30–6:30 PM at <strong>Iglesia Guadalupe</strong>, Granada.<br>
@@ -324,6 +324,19 @@
       1:30–6:30 PM. Meet at <strong>Socialtel Granada at 1:30 PM</strong>; a private bus takes everyone to the marina for 4 hours cruising the <strong>Isletas de Granada</strong> on Lake Nicaragua — drinks, music, dancing, and swimming. Water taxis can shuttle you back early if needed. <em>Bring: swimsuit, towel, sunscreen, sunglasses.</em></li>
     </ul>
     <p>Full details and updates are on our <a href="https://www.theknot.com/us/nicholas-celio-and-janeth-barahona-2026-12-05">wedding website</a>.</p>
+
+    <div class="resform">
+      <h3>🌴 Reserve: Treehouse Jungle Dance Party — Friday Night</h3>
+      <label for="th-names">Name(s) in your party</label>
+      <input type="text" id="th-names" placeholder="e.g., John &amp; Jane Smith">
+      <div class="checkrow">ℹ️ <span>Heads up: your reservation will be visible to other guests.</span></div>
+      <button type="button" id="th-btn" onclick="submitTreehouse()">🌴 Count Me In</button>
+      <p class="formnote" id="th-status">Your reservation saves instantly and appears below.</p>
+      <div class="reslist">
+        <h4>Who's partying so far</h4>
+        <div id="th-list"><em>Loading reservations…</em></div>
+      </div>
+    </div>
 
     <div class="resform">
       <h3>⛰️ Reserve: Catarina Overlook Trip — Saturday 10 AM</h3>
@@ -515,8 +528,9 @@ function api(payload) {
 
 function render() {
   var isAdmin = !!adminCode;
-  ['shuttle', 'catarina'].forEach(function (type) {
-    var box = el(type === 'shuttle' ? 'sh-list' : 'ct-list');
+  var boxes = { shuttle: 'sh-list', catarina: 'ct-list', treehouse: 'th-list' };
+  Object.keys(boxes).forEach(function (type) {
+    var box = el(boxes[type]);
     var items = allEntries.filter(function (e) { return e.type === type; });
     if (!items.length) {
       box.innerHTML = '<em>No reservations yet — be the first!</em>';
@@ -525,7 +539,7 @@ function render() {
     box.innerHTML = items.map(function (e) {
       var meta = type === 'shuttle'
         ? [e.party ? e.party + ' ppl' : '', e.flight, e.date, e.time].filter(Boolean).join(' · ')
-        : (e.party ? e.party + ' people' : '');
+        : type === 'catarina' ? (e.party ? e.party + ' people' : '') : '';
       var btns = isAdmin
         ? '<span class="adminbtns">'
           + '<button class="edit" onclick="startEdit(\'' + e.id + '\')">Edit</button>'
@@ -542,7 +556,7 @@ function loadEntries() {
     allEntries = d.entries || [];
     render();
   }).catch(function () {
-    el('sh-list').innerHTML = el('ct-list').innerHTML =
+    el('sh-list').innerHTML = el('ct-list').innerHTML = el('th-list').innerHTML =
       '<em>Could not load reservations — check back shortly.</em>';
   });
 }
@@ -553,6 +567,7 @@ function setStatus(prefix, msg) {
 
 function submitShuttle() { submitForm('shuttle', 'sh', { names: sheetSafe(val('sh-names')), party: sheetSafe(val('sh-party')), flight: sheetSafe(val('sh-flight')), date: sheetSafe(val('sh-date')), time: sheetSafe(val('sh-time')) }); }
 function submitCatarina() { submitForm('catarina', 'ct', { names: sheetSafe(val('ct-names')), party: sheetSafe(val('ct-count')) }); }
+function submitTreehouse() { submitForm('treehouse', 'th', { names: sheetSafe(val('th-names')) }); }
 
 function submitForm(type, prefix, fields) {
   if (!fields.names) { setStatus(prefix, 'Please enter your name(s) first!'); return; }
@@ -573,7 +588,8 @@ function submitForm(type, prefix, fields) {
     clearForm(prefix);
     setStatus(prefix, editing.id ? 'Updated!' : 'Reserved! See you there 🎉');
     editing = { id: null, type: null };
-    el(prefix + '-btn').textContent = prefix === 'sh' ? '🚐 Reserve My Shuttle' : '⛰️ Reserve My Spot';
+    var labels = { sh: '🚐 Reserve My Shuttle', ct: '⛰️ Reserve My Spot', th: '🌴 Count Me In' };
+    el(prefix + '-btn').textContent = labels[prefix];
   }).catch(function () {
     btn.disabled = false;
     setStatus(prefix, 'Something went wrong — please try again in a moment.');
@@ -581,7 +597,8 @@ function submitForm(type, prefix, fields) {
 }
 
 function clearForm(prefix) {
-  var ids = prefix === 'sh' ? ['sh-names', 'sh-party', 'sh-flight', 'sh-date', 'sh-time'] : ['ct-names', 'ct-count'];
+  var ids = prefix === 'sh' ? ['sh-names', 'sh-party', 'sh-flight', 'sh-date', 'sh-time']
+    : prefix === 'ct' ? ['ct-names', 'ct-count'] : ['th-names'];
   ids.forEach(function (id) { el(id).value = ''; });
 }
 
@@ -608,6 +625,10 @@ function startEdit(id) {
     el('sh-flight').value = e.flight; el('sh-date').value = e.date; el('sh-time').value = e.time;
     el('sh-btn').textContent = '💾 Save Changes';
     el('sh-names').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else if (e.type === 'treehouse') {
+    el('th-names').value = e.names;
+    el('th-btn').textContent = '💾 Save Changes';
+    el('th-names').scrollIntoView({ behavior: 'smooth', block: 'center' });
   } else {
     el('ct-names').value = e.names; el('ct-count').value = e.party;
     el('ct-btn').textContent = '💾 Save Changes';

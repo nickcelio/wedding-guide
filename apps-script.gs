@@ -59,17 +59,18 @@ function doPost(e) {
         String(req.party || ''), new Date().toISOString()
       ]);
       try {
-        var isCat = req.type === 'catarina';
-        var label = isCat ? 'Catarina Tour' : 'Airport Shuttle';
-        var lines = ['Name(s): ' + clean(req.names), 'Party size: ' + clean(req.party)];
-        if (!isCat) {
+        var label = req.type === 'catarina' ? 'Catarina Tour'
+          : req.type === 'treehouse' ? 'Treehouse Party' : 'Airport Shuttle';
+        var lines = ['Name(s): ' + clean(req.names)];
+        if (req.party) lines.push('Party size: ' + clean(req.party));
+        if (req.type === 'shuttle') {
           lines.push('Flight: ' + clean(req.flight));
           lines.push('Arrival date: ' + clean(req.date));
           lines.push('Arrival time: ' + clean(req.time));
         }
         MailApp.sendEmail(
           NOTIFY_EMAIL,
-          '💍 New ' + label + ' reservation: ' + clean(req.names),
+          'New ' + label + ' reservation: ' + clean(req.names),
           lines.join('\n') + '\n\nView all: https://nickcelio.github.io/wedding-guide/'
         );
       } catch (mailErr) { /* never block the reservation on email failure */ }
