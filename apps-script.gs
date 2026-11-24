@@ -3,8 +3,15 @@
 // Admin code is required (server-side) for edit/delete.
 
 var ADMIN_CODE = '1916';
+var NOTIFY_EMAIL = 'nickjcelio@gmail.com';
 var SHEET_NAME = 'Reservations';
 var HEADERS = ['id', 'type', 'names', 'airline', 'flight', 'date', 'time', 'party', 'created'];
+
+// Client sends values with a leading apostrophe so Sheets stores them as text;
+// strip it for email display.
+function clean(v) {
+  return String(v || '').replace(/^'/, '');
+}
 
 function getSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -51,6 +58,21 @@ function doPost(e) {
         String(req.date || ''), String(req.time || ''),
         String(req.party || ''), new Date().toISOString()
       ]);
+      try {
+        var isCat = req.type === 'catarina';
+        var label = isCat ? 'Catarina Tour' : 'Airport Shuttle';
+        var lines = ['Name(s): ' + clean(req.names), 'Party size: ' + clean(req.party)];
+        if (!isCat) {
+          lines.push('Flight: ' + clean(req.flight));
+          lines.push('Arrival date: ' + clean(req.date));
+          lines.push('Arrival time: ' + clean(req.time));
+        }
+        MailApp.sendEmail(
+          NOTIFY_EMAIL,
+          '💍 New ' + label + ' reservation: ' + clean(req.names),
+          lines.join('\n') + '\n\nView all: https://nickcelio.github.io/wedding-guide/'
+        );
+      } catch (mailErr) { /* never block the reservation on email failure */ }
       return json({ ok: true, id: id, entries: listAll() });
     }
 
