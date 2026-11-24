@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Nick &amp; Janeth — Nicaragua Travel Guide</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
     --terracotta: #c0603a;
@@ -193,6 +195,28 @@
     font-style: italic;
     color: var(--soft);
   }
+  #map {
+    height: 440px;
+    border-radius: 10px;
+    border: 1px solid #ece2d2;
+    z-index: 0;
+  }
+  .emoji-pin {
+    font-size: 26px;
+    line-height: 30px;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  }
+  .map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 12px;
+    font-size: 0.92rem;
+  }
+  .map-legend span { white-space: nowrap; }
+  .leaflet-popup-content { font-family: Georgia, serif; }
+  .leaflet-popup-content b { color: var(--terracotta); }
   .reslist {
     margin-top: 18px;
     border-top: 1px dashed #c9d8d6;
@@ -355,6 +379,22 @@
     <p><strong>Prefer to arrange it yourself?</strong> No problem — your hotel can easily schedule an airport pickup for you (just email or message them your flight details), and Granada has plenty of great, reliable transportation companies used to serving international travelers.</p>
   </div>
 
+  <!-- MAP -->
+  <div class="section">
+    <div class="kicker">Get Your Bearings</div>
+    <h2>🗺️ Map of the Weekend</h2>
+    <p>Everything is close together — La Calzada, the church, and Socialtel are all within a 10-minute walk of each other. Tap any pin for directions.</p>
+    <div id="map"></div>
+    <div class="map-legend">
+      <span>🏨 Socialtel (reception)</span>
+      <span>⛪ Iglesia Guadalupe (ceremony)</span>
+      <span>🎉 La Calzada</span>
+      <span>🏠 Nick &amp; Janeth's house</span>
+      <span>🛥️ Marina Cocibolca (boat tour)</span>
+      <span>🏧 Recommended ATMs</span>
+    </div>
+  </div>
+
   <!-- CUSTOMS / ENTRY -->
   <div class="section">
     <div class="kicker">At the Airport</div>
@@ -418,7 +458,7 @@
     <h2>Practical Tips</h2>
     <ul>
       <li><strong>Supplies:</strong> Basic supplies — toiletries, sunscreen, bug spray, snacks, medicine — are easily available in Granada. Don't stress about forgetting something.</li>
-      <li><strong>Money:</strong> <strong>Credit cards and tap-to-pay are widely accepted</strong> in Granada's restaurants, hotels, and shops. The local currency is the <strong>córdoba</strong>, and <strong>ATMs are available in Granada</strong> to take out local cash. US dollars are also widely accepted, <em>but only bills in perfect condition</em> — <strong>zero rips, tears, or stains</strong> — or they will be rejected. Keep some cash for street vendors and small purchases.</li>
+      <li><strong>Money:</strong> <strong>Credit cards and tap-to-pay are widely accepted</strong> in Granada's restaurants, hotels, and shops. The local currency is the <strong>córdoba</strong>, and ATMs are available in Granada to take out local cash — we recommend using the <strong>BAC or Lafise bank ATMs</strong> (both marked 🏧 on the map above, a couple of blocks from the central park). US dollars are also widely accepted, <em>but only bills in perfect condition</em> — <strong>zero rips, tears, or stains</strong> — or they will be rejected. Keep some cash for street vendors and small purchases.</li>
       <li><strong>Weather:</strong> Hot and tropical — pack light, breathable clothing, a hat, sunscreen, and comfortable walking shoes for the cobblestone streets. Plus those long sleeves for evenings!</li>
       <li><strong>Power:</strong> Same outlets and voltage as the US — no adapters needed.</li>
       <li><strong>Phones:</strong> Check with your carrier about international plans, or grab a cheap local SIM/eSIM. Most hotels and cafés have Wi-Fi.</li>
@@ -576,6 +616,31 @@ function delEntry(id) {
     render();
   }).catch(function () { alert('Delete failed — try again.'); });
 }
+
+// --- Map ---
+var places = [
+  { name: 'Socialtel Granada', desc: 'Wedding reception — Sat 6:30 PM. Also the Sunday boat tour meeting point (1:30 PM).', emoji: '🏨', lat: 11.93039, lng: -85.95442 },
+  { name: 'Iglesia Guadalupe', desc: 'Wedding ceremony — Sat 5:30 PM.', emoji: '⛪', lat: 11.93032, lng: -85.94756 },
+  { name: 'La Calzada', desc: "Granada's main pedestrian street — Friday night dinner & drinks.", emoji: '🎉', lat: 11.93036, lng: -85.95100 },
+  { name: "Nick & Janeth's house", desc: 'Come say hi!', emoji: '🏠', lat: 11.928534733003993, lng: -85.9436677838887 },
+  { name: 'Marina Cocibolca', desc: 'Sunday Isletas boat tour departs here (bus from Socialtel).', emoji: '🛥️', lat: 11.89906690120389, lng: -85.92938167484381 },
+  { name: 'BAC ATM', desc: 'Recommended ATM for taking out córdobas.', emoji: '🏧', lat: 11.93306, lng: -85.95536 },
+  { name: 'Lafise ATM', desc: 'Recommended ATM for taking out córdobas.', emoji: '🏧', lat: 11.93144, lng: -85.95503 }
+];
+
+var map = L.map('map', { scrollWheelZoom: false });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+var bounds = [];
+places.forEach(function (p) {
+  var icon = L.divIcon({ className: 'emoji-pin', html: p.emoji, iconSize: [30, 30], iconAnchor: [15, 15] });
+  L.marker([p.lat, p.lng], { icon: icon }).addTo(map)
+    .bindPopup('<b>' + p.emoji + ' ' + p.name + '</b><br>' + p.desc
+      + '<br><a href="https://www.google.com/maps?q=' + p.lat + ',' + p.lng + '" target="_blank">Open in Google Maps</a>');
+  bounds.push([p.lat, p.lng]);
+});
+map.fitBounds(bounds, { padding: [30, 30] });
 
 loadEntries();
 </script>
