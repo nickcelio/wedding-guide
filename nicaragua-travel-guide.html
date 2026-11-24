@@ -257,6 +257,80 @@
   }
   .reslist .adminbtns .edit { background: var(--deep-teal); }
   .reslist .adminbtns .del { background: var(--terracotta); }
+  /* Cute shuttle van graphic for flight groups */
+  .van { position: relative; margin: 14px 0 26px; }
+  .van-body {
+    position: relative;
+    background: linear-gradient(180deg, #2e7a74 0%, var(--deep-teal) 55%);
+    border-radius: 26px 46px 12px 12px;
+    padding: 12px 16px 14px;
+    border: 2px solid #17423f;
+    box-shadow: 0 4px 10px rgba(31,95,91,0.25);
+  }
+  .van-body::before { /* windshield */
+    content: '';
+    position: absolute;
+    top: 7px;
+    right: 10px;
+    width: 46px;
+    height: 20px;
+    background: linear-gradient(180deg, #cfe9ff, #9fcdf0);
+    border-radius: 4px 22px 4px 4px;
+    border: 2px solid #17423f;
+  }
+  .van-body::after { /* headlight */
+    content: '';
+    position: absolute;
+    right: 4px;
+    bottom: 16px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ffe9a8;
+    border: 2px solid #17423f;
+  }
+  .van-label {
+    color: #fffdf8;
+    font-weight: bold;
+    font-size: 0.95rem;
+    margin-bottom: 8px;
+    padding-right: 60px;
+  }
+  .van-label .sub { font-weight: normal; font-size: 0.82rem; opacity: 0.85; }
+  .van-seats {
+    background: #fffdf8;
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .van-seat {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+  }
+  .van-seat .meta { color: var(--soft); font-size: 0.82rem; }
+  .van-wheel {
+    position: absolute;
+    bottom: -14px;
+    width: 26px;
+    height: 26px;
+    background: #2b2b2b;
+    border-radius: 50%;
+    border: 3px solid #17423f;
+  }
+  .van-wheel::after {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    background: #d9d9d9;
+    border-radius: 50%;
+  }
+  .van-wheel.front { right: 36px; }
+  .van-wheel.back { left: 36px; }
   .footer {
     text-align: center;
     padding: 40px 20px 50px;
@@ -381,7 +455,7 @@
       <button type="button" id="sh-btn" onclick="submitShuttle()">🚐 Reserve My Shuttle</button>
       <p class="formnote" id="sh-status">Your reservation saves instantly and appears below.</p>
       <div class="reslist">
-        <h4>Shuttle reservations so far</h4>
+        <h4>Who's riding — same flight, same van! 🚐</h4>
         <div id="sh-list"><em>Loading reservations…</em></div>
       </div>
     </div>
@@ -526,6 +600,40 @@ function api(payload) {
     .then(function (r) { return r.json(); });
 }
 
+function adminBtns(id, isAdmin) {
+  return isAdmin
+    ? '<span class="adminbtns">'
+      + '<button class="edit" onclick="startEdit(\'' + id + '\')">Edit</button>'
+      + '<button class="del" onclick="delEntry(\'' + id + '\')">Delete</button></span>'
+    : '';
+}
+
+function renderVans(items, isAdmin) {
+  // Group passengers by flight number so shuttle-mates ride in the same van
+  var groups = {};
+  var order = [];
+  items.forEach(function (e) {
+    var key = (e.flight || '').trim().toUpperCase() || 'TBD';
+    if (!groups[key]) { groups[key] = []; order.push(key); }
+    groups[key].push(e);
+  });
+  return order.map(function (key) {
+    var g = groups[key];
+    var first = g.find(function (e) { return e.date || e.time; }) || g[0];
+    var when = [first.date, first.time].filter(Boolean).join(' · ');
+    var label = key === 'TBD' ? '🚐 Flight TBD' : '🚐 Flight ' + esc(key);
+    var seats = g.map(function (e) {
+      return '<div class="van-seat"><span>🧑‍✈️ <b>' + esc(e.names) + '</b>'
+        + (e.party ? ' <span class="meta">(' + esc(e.party) + ' ppl)</span>' : '') + '</span>'
+        + adminBtns(e.id, isAdmin) + '</div>';
+    }).join('');
+    return '<div class="van"><div class="van-body">'
+      + '<div class="van-label">' + label + (when ? ' <span class="sub">' + esc(when) + '</span>' : '') + '</div>'
+      + '<div class="van-seats">' + seats + '</div>'
+      + '</div><span class="van-wheel back"></span><span class="van-wheel front"></span></div>';
+  }).join('');
+}
+
 function render() {
   var isAdmin = !!adminCode;
   var boxes = { shuttle: 'sh-list', catarina: 'ct-list', treehouse: 'th-list' };
@@ -536,17 +644,14 @@ function render() {
       box.innerHTML = '<em>No reservations yet — be the first!</em>';
       return;
     }
+    if (type === 'shuttle') {
+      box.innerHTML = renderVans(items, isAdmin);
+      return;
+    }
     box.innerHTML = items.map(function (e) {
-      var meta = type === 'shuttle'
-        ? [e.party ? e.party + ' ppl' : '', e.flight, e.date, e.time].filter(Boolean).join(' · ')
-        : type === 'catarina' ? (e.party ? e.party + ' people' : '') : '';
-      var btns = isAdmin
-        ? '<span class="adminbtns">'
-          + '<button class="edit" onclick="startEdit(\'' + e.id + '\')">Edit</button>'
-          + '<button class="del" onclick="delEntry(\'' + e.id + '\')">Delete</button></span>'
-        : '';
+      var meta = type === 'catarina' ? (e.party ? e.party + ' people' : '') : '';
       return '<div class="entry"><span><span class="who">' + esc(e.names) + '</span>'
-        + (meta ? ' <span class="meta">' + esc(meta) + '</span>' : '') + '</span>' + btns + '</div>';
+        + (meta ? ' <span class="meta">' + esc(meta) + '</span>' : '') + '</span>' + adminBtns(e.id, isAdmin) + '</div>';
     }).join('');
   });
 }
