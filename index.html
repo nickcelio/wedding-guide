@@ -193,6 +193,43 @@
     font-style: italic;
     color: var(--soft);
   }
+  .reslist {
+    margin-top: 18px;
+    border-top: 1px dashed #c9d8d6;
+    padding-top: 12px;
+  }
+  .reslist h4 {
+    color: var(--deep-teal);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .reslist .entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    background: #fff;
+    border: 1px solid #e3ded4;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    font-size: 0.95rem;
+  }
+  .reslist .entry .who { font-weight: bold; }
+  .reslist .entry .meta { color: var(--soft); font-size: 0.85rem; }
+  .reslist .adminbtns { display: flex; gap: 6px; flex-shrink: 0; }
+  .reslist .adminbtns button {
+    all: unset;
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 5px;
+    color: #fff;
+  }
+  .reslist .adminbtns .edit { background: var(--deep-teal); }
+  .reslist .adminbtns .del { background: var(--terracotta); }
   .footer {
     text-align: center;
     padding: 40px 20px 50px;
@@ -268,8 +305,12 @@
       <label for="ct-count">How many people?</label>
       <input type="text" id="ct-count" placeholder="e.g., 2">
       <div class="checkrow">ℹ️ <span>Heads up: your reservation will be visible to other guests.</span></div>
-      <button type="button" onclick="sendCatarina()">📱 Text My Reservation to Nick</button>
-      <p class="formnote">Opens your messaging app with everything filled in — just hit send. (Or text (330) 559-5772 directly.)</p>
+      <button type="button" id="ct-btn" onclick="submitCatarina()">⛰️ Reserve My Spot</button>
+      <p class="formnote" id="ct-status">Your reservation saves instantly and appears below.</p>
+      <div class="reslist">
+        <h4>Who's coming so far</h4>
+        <div id="ct-list"><em>Loading reservations…</em></div>
+      </div>
     </div>
   </div>
 
@@ -288,8 +329,8 @@
       <h3>🚐 Reserve Your Airport Shuttle</h3>
       <label for="sh-names">Name(s) in your party</label>
       <input type="text" id="sh-names" placeholder="e.g., John &amp; Jane Smith">
-      <label for="sh-airline">Airline</label>
-      <input type="text" id="sh-airline" placeholder="e.g., United">
+      <label for="sh-party">How many people?</label>
+      <input type="text" id="sh-party" placeholder="e.g., 2">
       <label for="sh-flight">Flight number</label>
       <input type="text" id="sh-flight" placeholder="e.g., UA1427">
       <label for="sh-date">Arrival date</label>
@@ -297,12 +338,16 @@
       <label for="sh-time">Arrival time</label>
       <input type="text" id="sh-time" placeholder="e.g., 1:45 PM">
       <div class="checkrow">ℹ️ <span>Heads up: your name and flight details will be visible to other guests so we can coordinate shared rides.</span></div>
-      <button type="button" onclick="sendShuttle()">📱 Text My Reservation to Nick</button>
-      <p class="formnote">Opens your messaging app with everything filled in — just hit send. Nick will reply with your driver's name and shuttle-mates. (Or text (330) 559-5772 directly.)</p>
+      <button type="button" id="sh-btn" onclick="submitShuttle()">🚐 Reserve My Shuttle</button>
+      <p class="formnote" id="sh-status">Your reservation saves instantly and appears below.</p>
+      <div class="reslist">
+        <h4>Shuttle reservations so far</h4>
+        <div id="sh-list"><em>Loading reservations…</em></div>
+      </div>
     </div>
 
     <ol class="steps">
-      <li><strong>Fill out the shuttle form above</strong> and tap the button — it opens a text to Nick with your flight details filled in. Just hit send.</li>
+      <li><strong>Fill out the shuttle form above</strong> and tap Reserve — your reservation is saved instantly and appears in the list.</li>
       <li><strong>Watch for a confirmation reply</strong> — Nick will confirm your pickup by replying with your <strong>driver's name</strong> and the <strong>names of the other guests sharing your shuttle</strong>.</li>
       <li><strong>At the airport</strong>, clear customs, exit, and look for your driver. They'll be expecting you by name.</li>
     </ol>
@@ -381,11 +426,12 @@
   </div>
 
   <!-- CONTACT -->
+  <!-- CONTACT -->
   <div class="contact-box">
-    <h2>Questions? Text Nick!</h2>
-    <p>For shuttle pickups, send your <strong>flight number, date &amp; arrival time</strong>.</p>
-    <p class="phone"><a href="sms:+13305595772?&amp;body=Hi%20Nick!%20Here%20is%20my%20flight%20info%3A%20Airline%3A%20___%2C%20Flight%20number%3A%20___%2C%20Arrival%20date%3A%20___%2C%20Arrival%20time%3A%20___" style="color:#fffdf8;">📱 (330) 559-5772</a></p>
-    <p>I'll confirm your pickup with your driver's name and shuttle-mates.</p>
+    <h2>Questions?</h2>
+    <p>Anything at all — flights, hotels, the schedule, what to pack — just ask.</p>
+    <p class="phone"><a href="sms:+13305595772?&amp;body=Hi%20Nick!%20I%20have%20a%20question%20about%20the%20wedding%20weekend%3A%20" style="display:inline-block;background:#c9a227;color:#1f5f5b;padding:14px 28px;border-radius:8px;text-decoration:none;">💬 Text Nick</a></p>
+    <p>(330) 559-5772</p>
   </div>
 
 </div>
@@ -394,36 +440,144 @@
   <p class="hearts">♥ ♥ ♥</p>
   <p>We can't wait to celebrate with you in Granada!</p>
   <p>— Nick &amp; Janeth</p>
+  <p><a href="#" id="admin-link" onclick="toggleAdmin(); return false;" style="color:#b8aca2;font-size:0.8rem;font-weight:normal;">admin</a></p>
 </footer>
 
 <script>
-var NICK = '+13305595772';
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwWqIAmCPhVM6Ekyhxu2QzhULMk_P4wOcGtB4tvf2uTu28a-zsNrZyv3KUZo7_lKnjqfA/exec'; // Google Apps Script web app URL
+var adminCode = sessionStorage.getItem('adminCode') || '';
+var editing = { id: null, type: null };
+var allEntries = [];
 
-function smsOpen(body) {
-  window.location.href = 'sms:' + NICK + '?&body=' + encodeURIComponent(body);
+function el(id) { return document.getElementById(id); }
+function val(id) { return el(id).value.trim(); }
+// Leading apostrophe stops Google Sheets from auto-converting values like "Dec 3" into dates;
+// it's stripped automatically when the sheet is read back.
+function sheetSafe(v) { return v ? "'" + v : v; }
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
 }
 
-function val(id) {
-  var v = document.getElementById(id).value.trim();
-  return v || '___';
+function api(payload) {
+  // text/plain avoids a CORS preflight, which Apps Script doesn't support
+  return fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) })
+    .then(function (r) { return r.json(); });
 }
 
-function sendShuttle() {
-  var body = 'SHUTTLE RESERVATION\n'
-    + 'Name(s): ' + val('sh-names') + '\n'
-    + 'Airline: ' + val('sh-airline') + '\n'
-    + 'Flight: ' + val('sh-flight') + '\n'
-    + 'Arrival date: ' + val('sh-date') + '\n'
-    + 'Arrival time: ' + val('sh-time');
-  smsOpen(body);
+function render() {
+  var isAdmin = !!adminCode;
+  ['shuttle', 'catarina'].forEach(function (type) {
+    var box = el(type === 'shuttle' ? 'sh-list' : 'ct-list');
+    var items = allEntries.filter(function (e) { return e.type === type; });
+    if (!items.length) {
+      box.innerHTML = '<em>No reservations yet — be the first!</em>';
+      return;
+    }
+    box.innerHTML = items.map(function (e) {
+      var meta = type === 'shuttle'
+        ? [e.party ? e.party + ' ppl' : '', e.flight, e.date, e.time].filter(Boolean).join(' · ')
+        : (e.party ? e.party + ' people' : '');
+      var btns = isAdmin
+        ? '<span class="adminbtns">'
+          + '<button class="edit" onclick="startEdit(\'' + e.id + '\')">Edit</button>'
+          + '<button class="del" onclick="delEntry(\'' + e.id + '\')">Delete</button></span>'
+        : '';
+      return '<div class="entry"><span><span class="who">' + esc(e.names) + '</span>'
+        + (meta ? ' <span class="meta">' + esc(meta) + '</span>' : '') + '</span>' + btns + '</div>';
+    }).join('');
+  });
 }
 
-function sendCatarina() {
-  var body = 'CATARINA TOUR RESERVATION (Saturday 10 AM)\n'
-    + 'Name(s): ' + val('ct-names') + '\n'
-    + 'Party size: ' + val('ct-count');
-  smsOpen(body);
+function loadEntries() {
+  fetch(SCRIPT_URL).then(function (r) { return r.json(); }).then(function (d) {
+    allEntries = d.entries || [];
+    render();
+  }).catch(function () {
+    el('sh-list').innerHTML = el('ct-list').innerHTML =
+      '<em>Could not load reservations — check back shortly.</em>';
+  });
 }
+
+function setStatus(prefix, msg) {
+  el(prefix + '-status').textContent = msg;
+}
+
+function submitShuttle() { submitForm('shuttle', 'sh', { names: sheetSafe(val('sh-names')), party: sheetSafe(val('sh-party')), flight: sheetSafe(val('sh-flight')), date: sheetSafe(val('sh-date')), time: sheetSafe(val('sh-time')) }); }
+function submitCatarina() { submitForm('catarina', 'ct', { names: sheetSafe(val('ct-names')), party: sheetSafe(val('ct-count')) }); }
+
+function submitForm(type, prefix, fields) {
+  if (!fields.names) { setStatus(prefix, 'Please enter your name(s) first!'); return; }
+  var btn = el(prefix + '-btn');
+  btn.disabled = true;
+  setStatus(prefix, 'Saving…');
+  var payload;
+  if (editing.id && editing.type === type) {
+    payload = Object.assign({ action: 'update', id: editing.id, admin: adminCode, type: type }, fields);
+  } else {
+    payload = Object.assign({ action: 'add', type: type }, fields);
+  }
+  api(payload).then(function (d) {
+    btn.disabled = false;
+    if (!d.ok) { setStatus(prefix, 'Error: ' + d.error); return; }
+    allEntries = d.entries || [];
+    render();
+    clearForm(prefix);
+    setStatus(prefix, editing.id ? 'Updated!' : 'Reserved! See you there 🎉');
+    editing = { id: null, type: null };
+    el(prefix + '-btn').textContent = prefix === 'sh' ? '🚐 Reserve My Shuttle' : '⛰️ Reserve My Spot';
+  }).catch(function () {
+    btn.disabled = false;
+    setStatus(prefix, 'Something went wrong — please try again in a moment.');
+  });
+}
+
+function clearForm(prefix) {
+  var ids = prefix === 'sh' ? ['sh-names', 'sh-party', 'sh-flight', 'sh-date', 'sh-time'] : ['ct-names', 'ct-count'];
+  ids.forEach(function (id) { el(id).value = ''; });
+}
+
+function toggleAdmin() {
+  if (adminCode) {
+    adminCode = '';
+    sessionStorage.removeItem('adminCode');
+    render();
+    return;
+  }
+  var code = prompt('Enter admin code:');
+  if (!code) return;
+  adminCode = code.trim();
+  sessionStorage.setItem('adminCode', adminCode);
+  render();
+}
+
+function startEdit(id) {
+  var e = allEntries.filter(function (x) { return x.id === id; })[0];
+  if (!e) return;
+  editing = { id: id, type: e.type };
+  if (e.type === 'shuttle') {
+    el('sh-names').value = e.names; el('sh-party').value = e.party;
+    el('sh-flight').value = e.flight; el('sh-date').value = e.date; el('sh-time').value = e.time;
+    el('sh-btn').textContent = '💾 Save Changes';
+    el('sh-names').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    el('ct-names').value = e.names; el('ct-count').value = e.party;
+    el('ct-btn').textContent = '💾 Save Changes';
+    el('ct-names').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function delEntry(id) {
+  if (!confirm('Delete this reservation?')) return;
+  api({ action: 'delete', id: id, admin: adminCode }).then(function (d) {
+    if (!d.ok) { alert('Error: ' + d.error); return; }
+    allEntries = d.entries || [];
+    render();
+  }).catch(function () { alert('Delete failed — try again.'); });
+}
+
+loadEntries();
 </script>
 </body>
 </html>
